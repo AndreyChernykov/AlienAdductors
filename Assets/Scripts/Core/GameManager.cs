@@ -88,12 +88,12 @@ namespace Game.Core
 
         }
 
-        public void PlayerWin()
+        private void PlayerWin()
         {
             gameUI.DisplayWin();
         }
 
-        public IEnumerator GameOver()
+        private IEnumerator GameOver()
         {
             raycaster.enabled = false;
             character.SetState(CharacterState.WakeUp);
@@ -102,7 +102,7 @@ namespace Game.Core
             raycaster.enabled = true;
         }
 
-        public IEnumerator LevelPassed()
+        private IEnumerator LevelPassed()
         {
             raycaster.enabled = false;
             yield return new WaitForSeconds(delayWindowsDisplay);

@@ -24,10 +24,11 @@ namespace Game.Objects
         private string _axisZ = "Mouse Y";
 
         private bool _isMoving = true;
-
+        private float _timeDelay = 0.3f;
 
         private Vector3 _lastPosition;
         private GameManager _gameManager;
+        private IEnumerator _wakeUp;
 
         IEnumerator _mover;
 
@@ -132,11 +133,32 @@ namespace Game.Objects
                 {
                     if (other.transform.GetChild(i).GetComponent<Character>())
                     {
-                        audioSource.PlayOneShot(wakesUp);
-                        StartCoroutine(_gameManager.GameOver());
+                        _wakeUp = WakeUp();
+                        StartCoroutine(_wakeUp);
                     }
                 }
             }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (wakesUpObject)
+            {
+                for (int i = 0; i < other.transform.childCount; i++)
+                {
+                    if (other.transform.GetChild(i).GetComponent<Character>())
+                    {
+                        StopCoroutine(_wakeUp);
+                    }
+                }
+            }
+        }
+
+        private IEnumerator WakeUp()
+        {
+            yield return new WaitForSeconds(_timeDelay);
+            audioSource.PlayOneShot(wakesUp);
+            _gameManager.SetGameState(GameState.Lose);
         }
     }
 }
