@@ -15,10 +15,11 @@ namespace Game.Core
         [SerializeField] private float delayWindowsDisplay;
         [SerializeField] private AudioMixerGroup audioMixerGroup;
         [SerializeField] private PhysicsRaycaster raycaster;
-
+        public bool onExit { get; set; }
         public Character character { get; set; }
         public int playerSteps { get; private set; }
-        public bool isGameOver { get; private set; }
+
+        private float _volumeOff = -80;
 
         private void OnEnable()
         {
@@ -32,17 +33,17 @@ namespace Game.Core
 
         public void StartGame()
         {
+            onExit = false;
+
             playerSteps = levelManager.StartLevelManager();
 
             gameUI.DisplayStepsCounter(playerSteps);
             gameUI.DisplayLevelCounter(levelManager.curentLevel);
-
-            isGameOver = false;
         }
 
         public void StartNewLevel()
         {
-            isGameOver = false;
+            onExit = false;
 
             playerSteps = levelManager.NextLevel();
             gameUI.DisplayLevelCounter(levelManager.curentLevel);            
@@ -51,22 +52,39 @@ namespace Game.Core
 
         private void PlayerStepsCounter()
         {
-            if (playerSteps == 0)
-            {
-                isGameOver = true;
-                StartCoroutine(GameOver());
-            }
             if (playerSteps > 0)
             {
-                playerSteps--;
-                gameUI.DisplayStepsCounter(playerSteps);
+                SetGameState(GameState.Play);
+            }
+            if(playerSteps == 0)
+            {
+                if(onExit) SetGameState(GameState.Win);
+                else SetGameState(GameState.Lose);
+            }
+
+        }
+
+        public void SetGameState(GameState state)
+        {
+            switch (state)
+            {
+                case GameState.Play:
+                    playerSteps--;
+                    gameUI.DisplayStepsCounter(playerSteps);
+                    break;
+                case GameState.Win:
+                    StartCoroutine(LevelPassed());
+                    break;
+                case GameState.Lose:
+                    StartCoroutine(GameOver());
+                    break;
             }
         }
 
         public void SetSound(bool b)
         {
             if(b)audioMixerGroup.audioMixer.SetFloat("MasterVolume", 0);
-            else audioMixerGroup.audioMixer.SetFloat("MasterVolume", -80);
+            else audioMixerGroup.audioMixer.SetFloat("MasterVolume", _volumeOff);
 
         }
 
@@ -80,7 +98,7 @@ namespace Game.Core
             raycaster.enabled = false;
             character.SetState(CharacterState.WakeUp);
             yield return new WaitForSeconds(delayWindowsDisplay);
-            gameUI.DisplayGameOver();
+            if (!onExit) gameUI.DisplayGameOver();
             raycaster.enabled = true;
         }
 

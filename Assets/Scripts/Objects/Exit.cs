@@ -48,11 +48,9 @@ namespace Game.Objects
         private IEnumerator Abductions(Character character)
         {
             yield return new WaitForSeconds(_timeDelay);
-            if (!_gameManager.isGameOver)
-            {
-                character.SetAbduction(targetAbduction.position);
-                StartCoroutine(_gameManager.LevelPassed());
-            }
+            character.SetAbduction(targetAbduction.position);
+            _gameManager.onExit = true;
+            _gameManager.SetGameState(GameState.Win);
 
         }
     }
